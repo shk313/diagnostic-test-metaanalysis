@@ -13,7 +13,7 @@ data {
 
 parameters {
   real<lower=0,upper=1> Se1; // sensitivity
-  //real<lower=0,upper=1> Sp1; // specifcity
+  real<lower=0.99,upper=1> Sp1; // specifcity
   real<lower=0,upper=1> Se2; // sensitivity
   real<lower=0,upper=1> Sp2; // specifcity
   real<lower=0,upper=1> Se3; // sensitivity
@@ -32,11 +32,6 @@ parameters {
 transformed parameters {
   //vector<lower=0,upper=1>[C] theta2;   // 
   simplex[C] theta2;   // 
-  //real ub23;
-  real Sp1;
-  Sp1 = 1;
-  
-  //ub23 = fmin(Se2,Se3)-Se2*Se3;
   
   theta2[1] = prev*(Se1*Se2*Se3*Se4*Se5+cov23) + (1-prev)*((1-Sp1)*(1-Sp2)*(1-Sp3)*(1-Sp4)*(1-Sp5)); // 1,1,1,1,1
   theta2[2] = prev*(Se1*Se2*Se3*Se4*(1-Se5)+cov23) + (1-prev)*((1-Sp1)*(1-Sp2)*(1-Sp3)*(1-Sp4)*Sp5); // 1,1,1,1,0
@@ -81,6 +76,7 @@ model {
   Se3~beta(1,1);
   Se4~beta(1,1);
   Se5~beta(1,1);
+  Sp1~beta(100,1);
   Sp2~beta(1,1);
   Sp3~beta(1,1);
   Sp4~beta(1,1);

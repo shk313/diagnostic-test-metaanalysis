@@ -1,5 +1,5 @@
 //
-// Model 0 individual
+// Model 1 individual
 
 data {
   
@@ -31,9 +31,9 @@ parameters {
   
   real<lower=0,upper=1> prev; 
   
-  // vector[N] RE;
-  // real<lower=0,upper=5> b1; 
-  // real<lower=0,upper=5> b2;
+  vector[N] RE;
+  real<lower=0,upper=5> b1;
+  real<lower=0,upper=5> b2;
   // real<lower=0,upper=5> b3;
   // real<lower=0,upper=5> b4;
 }
@@ -64,9 +64,9 @@ transformed parameters {
   prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
   prob[1,2] = rep_vector(a1,N); // not correalted with the other tests
   prob[2,1] = rep_vector(1-Sp2,N);
-  prob[2,2] = rep_vector(a2, N);
+  prob[2,2] = inv_logit(logit(a2)+b1*RE);
   prob[3,1] = rep_vector(1-Sp3,N);
-  prob[3,2] = rep_vector(a3, N);
+  prob[3,2] = inv_logit(logit(a3)+b2*RE);
   prob[4,1] = rep_vector(1-Sp4,N);
   prob[4,2] = rep_vector(a4, N);
   prob[5,1] = rep_vector(1-Sp5,N);
@@ -90,9 +90,9 @@ model {
   Sp5~beta(1,1);
   prev~beta(1,1); 
 
-  // RE~normal(0,1); 
-  // b1~gamma(1,1);
-  // b2~gamma(1,1);
+  RE~normal(0,1); 
+  b1~gamma(1,1);
+  b2~gamma(1,1);
   // b3~gamma(1,1);
   // b4~gamma(1,1);
   

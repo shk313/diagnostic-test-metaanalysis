@@ -7,9 +7,9 @@ rstan_options(auto_write = TRUE)
 options(mc.cores=parallel::detectCores())
 options(shinystan.rstudio = TRUE)
 
-setwd('/Users/SuzanneKeddie/OneDrive - London School of Hygiene and Tropical Medicine/diagnostic_test_meta_analysis/examples/Melioidosis/')
-
-raw_data <- read.csv('melioidosis_data.csv')
+path_to_data <- '/Users/SuzanneKeddie/OneDrive - London School of Hygiene and Tropical Medicine/diagnostic_test_meta_analysis/examples/Melioidosis/'
+path_to_code <- '/Users/SuzanneKeddie/Documents/diagnostic-test-metaanalysis/melioidosis/'
+raw_data <- read.csv(paste0(path_to_data,'melioidosis_data.csv'))
 
 
 # Multinomial models set up
@@ -18,14 +18,14 @@ y <- raw_data$freq ## ordered
 M <- 5
 N <- 320
 C <- 2^M
-alpha_1 <- 100
-beta_1 <- 1
+# alpha_1 <- 100
+# beta_1 <- 1
 
 stan_data <- list(N=N,M=M,C=C,y=y)#,
                   # alpha_1 = alpha_1,
                   # beta_1 = beta_1)
 
-stan_test <- "model_0.stan"
+stan_test <- paste0(path_to_code,"model0_.stan")
 
 fit<- stan(stan_test,
            data = stan_data, 
@@ -60,12 +60,12 @@ N <- nrow(ind_data)
 
 stan_data <- list(N=N,M=M,t1=ind_data$a, t2=ind_data$b,t3=ind_data$c,t4=ind_data$d,t5=ind_data$e)
 
-stan_test <- "model4.stan"
+stan_test <- paste0(path_to_code,"model2_individual.stan")
 
 fit<- stan(stan_test,
            data = stan_data, 
            warmup = 500,
-           iter = 5000,
+           iter = 2000,
            chains = 1,
            thin=1,
            #include = FALSE, pars = c('prob'),
@@ -131,5 +131,5 @@ test <- apply(test, 2,as.numeric)
 testmean <- apply(test, 1, mean)
 testmode <- apply(test, 1, getmode)
 
-profiles <- cbind(profiles, testsum)
+profiles <- cbind(profiles, testmean)
 
