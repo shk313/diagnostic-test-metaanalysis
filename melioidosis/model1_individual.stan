@@ -32,8 +32,8 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0,upper=5> b1;
-  real<lower=0,upper=5> b2;
+  real<lower=0> b1;
+  //real<lower=0> b2;
   // real<lower=0,upper=5> b3;
   // real<lower=0,upper=5> b4;
 }
@@ -66,7 +66,7 @@ transformed parameters {
   prob[2,1] = rep_vector(1-Sp2,N);
   prob[2,2] = inv_logit(logit(a2)+b1*RE);
   prob[3,1] = rep_vector(1-Sp3,N);
-  prob[3,2] = inv_logit(logit(a3)+b2*RE);
+  prob[3,2] = inv_logit(logit(a3)+b1*RE);
   prob[4,1] = rep_vector(1-Sp4,N);
   prob[4,2] = rep_vector(a4, N);
   prob[5,1] = rep_vector(1-Sp5,N);
@@ -92,7 +92,7 @@ model {
 
   RE~normal(0,1); 
   b1~gamma(1,1);
-  b2~gamma(1,1);
+  //b2~gamma(1,1);
   // b3~gamma(1,1);
   // b4~gamma(1,1);
   
@@ -111,8 +111,19 @@ generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
   
-  vector[N] log_lik;
-  real ll[2];
+  // vector[N] log_lik;
+  // real ll[2];
+  
+  real ppv1;
+  real npv1;
+  real ppv2;
+  real npv2;
+  real ppv3;
+  real npv3;
+  real ppv4;
+  real npv4;
+  real ppv5;
+  real npv5;
   
   int<lower=0> y_pred[N,M];
   int<lower=0,upper=1> inf[N];
@@ -124,6 +135,17 @@ for(m in 1:M){
   Sp_mean[m] = mean(1-prob[m,1,]);
 }
  
+  ppv1 = Se_mean[1]*prev / (Se_mean[1]*prev+(1-Sp1)*(1-prev));
+  npv1 = Sp1*(1-prev) / (Sp1*(1-prev)+(1-Se_mean[1])*prev);
+  ppv2 = Se_mean[2]*prev / (Se_mean[2]*prev+(1-Sp2)*(1-prev));
+  npv2 = Sp2*(1-prev) / (Sp2*(1-prev)+(1-Se_mean[2])*prev);
+  ppv3 = Se_mean[3]*prev / (Se_mean[3]*prev+(1-Sp3)*(1-prev));
+  npv3 = Sp3*(1-prev) / (Sp3*(1-prev)+(1-Se_mean[3])*prev);
+  ppv4 = Se_mean[4]*prev / (Se_mean[4]*prev+(1-Sp4)*(1-prev));
+  npv4 = Sp4*(1-prev) / (Sp4*(1-prev)+(1-Se_mean[4])*prev);
+  ppv5 = Se_mean[5]*prev / (Se_mean[5]*prev+(1-Sp5)*(1-prev));
+  npv5 = Sp5*(1-prev) / (Sp5*(1-prev)+(1-Se_mean[5])*prev);
+  
   
 for(n in 1:N){
   inf[n] = binomial_rng(1,theta[2]);
@@ -142,13 +164,13 @@ for(n in 1:N){
 } 
 
 // Likelihood for use in LOO-CV
-  for(n in 1:N){
-    for(k in 1:2){
-      ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
-    }
-
-  log_lik[n] = log_sum_exp(ll);
-  }
+  // for(n in 1:N){
+  //   for(k in 1:2){
+  //     ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
+  //   }
+  // 
+  // log_lik[n] = log_sum_exp(ll);
+  // }
 
 
 }

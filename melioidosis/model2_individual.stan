@@ -32,8 +32,8 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0,upper=5> b1;
-  real<lower=0,upper=5> b2;
+  real<lower=0> b1;
+  //real<lower=0> b2;
   // real<lower=0,upper=5> b3;
   // real<lower=0,upper=5> b4;
 }
@@ -68,7 +68,7 @@ transformed parameters {
   prob[3,1] = rep_vector(1-Sp3,N);
   prob[3,2] = rep_vector(a3, N);
   prob[4,1] = rep_vector(1-Sp4,N);
-  prob[4,2] = inv_logit(logit(a4)+b2*RE);
+  prob[4,2] = inv_logit(logit(a4)+b1*RE);
   prob[5,1] = rep_vector(1-Sp5,N);
   prob[5,2] = rep_vector(a5, N);
   //  
@@ -92,7 +92,7 @@ model {
 
   RE~normal(0,1); 
   b1~gamma(1,1);
-  b2~gamma(1,1);
+  //b2~gamma(1,1);
   // b3~gamma(1,1);
   // b4~gamma(1,1);
   

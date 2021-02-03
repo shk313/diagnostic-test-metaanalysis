@@ -111,8 +111,21 @@ generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
   
+  real ppv1;
+  real npv1;
+  real ppv2;
+  real npv2;
+  real ppv3;
+  real npv3;
+  real ppv4;
+  real npv4;
+  real ppv5;
+  real npv5;
+  
   vector[N] log_lik;
   real ll[2];
+  
+  
   
   int<lower=0> y_pred[N,M];
   int<lower=0,upper=1> inf[N];
@@ -123,7 +136,17 @@ for(m in 1:M){
   Se_mean[m] = mean(prob[m,2,]);
   Sp_mean[m] = mean(1-prob[m,1,]);
 }
- 
+
+  ppv1 = a1*prev / (a1*prev+(1-Sp1)*(1-prev));
+  npv1 = Sp1*(1-prev) / (Sp1*(1-prev)+(1-a1)*prev);
+  ppv2 = a2*prev / (a2*prev+(1-Sp2)*(1-prev));
+  npv2 = Sp2*(1-prev) / (Sp2*(1-prev)+(1-a2)*prev);
+  ppv3 = a3*prev / (a3*prev+(1-Sp3)*(1-prev));
+  npv3 = Sp3*(1-prev) / (Sp3*(1-prev)+(1-a3)*prev);
+  ppv4 = a4*prev / (a4*prev+(1-Sp4)*(1-prev));
+  npv4 = Sp4*(1-prev) / (Sp4*(1-prev)+(1-a4)*prev);
+  ppv5 = a5*prev / (a5*prev+(1-Sp5)*(1-prev));
+  npv5 = Sp5*(1-prev) / (Sp5*(1-prev)+(1-a5)*prev);
   
 for(n in 1:N){
   inf[n] = binomial_rng(1,theta[2]);

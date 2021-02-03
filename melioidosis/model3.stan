@@ -18,7 +18,7 @@ data {
 
 parameters {
   real<lower=0,upper=1> a1; 
-  real<lower=0.99,upper=1> Sp1; 
+  //real<lower=0.99,upper=1> Sp1; 
   real<lower=0,upper=1> a2;
   real<lower=0,upper=1> Sp2;
   real<lower=0,upper=1> a3;
@@ -31,16 +31,19 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0,upper=5> b1; 
-  real<lower=0,upper=5> b2;
-  real<lower=0,upper=5> b3;
-  real<lower=0,upper=5> b4;
+  real<lower=0> b1; 
+  // real<lower=0,upper=8> b2;
+  // real<lower=0,upper=8> b3;
+  // real<lower=0,upper=8> b4;
 }
 
 transformed parameters {
   
   simplex[2] theta; // prob infected or not infected
   vector[N] prob[M,2];   // probabilities of being TN or TP
+  real Sp1;
+  
+  Sp1 = 1;
 
   theta[1] = 1-prev;
   theta[2] = prev;
@@ -51,11 +54,11 @@ transformed parameters {
   prob[2,1] = rep_vector(1-Sp2,N);
   prob[2,2] = inv_logit(logit(a2)+b1*RE);
   prob[3,1] = rep_vector(1-Sp3,N);
-  prob[3,2] = inv_logit(logit(a3)+b2*RE);
+  prob[3,2] = inv_logit(logit(a3)+b1*RE);
   prob[4,1] = rep_vector(1-Sp4,N);
-  prob[4,2] = inv_logit(logit(a4)+b3*RE);
+  prob[4,2] = inv_logit(logit(a4)+b1*RE);
   prob[5,1] = rep_vector(1-Sp5,N);
-  prob[5,2] = inv_logit(logit(a5)+b4*RE);
+  prob[5,2] = inv_logit(logit(a5)+b1*RE);
   //  
 }
 
@@ -68,7 +71,7 @@ model {
   a3~beta(1,1);
   a4~beta(1,1);
   a5~beta(1,1);
-  Sp1~beta(100,1);
+  //Sp1~beta(100,1);
   Sp2~beta(1,1);
   Sp3~beta(1,1);
   Sp4~beta(1,1);
@@ -77,9 +80,9 @@ model {
 
   RE~normal(0,1); 
   b1~gamma(1,1);
-  b2~gamma(1,1);
-  b3~gamma(1,1);
-  b4~gamma(1,1);
+  // b2~gamma(1,1);
+  // b3~gamma(1,1);
+  // b4~gamma(1,1);
   
   for(n in 1:N){
     for(k in 1:2){
