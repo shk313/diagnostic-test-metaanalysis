@@ -32,7 +32,7 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0,upper=5> b1; 
+  real<lower=0> b1; 
   // real<lower=0,upper=5> b2;
   // real<lower=0,upper=5> b3;
   // real<lower=0,upper=5> b4;

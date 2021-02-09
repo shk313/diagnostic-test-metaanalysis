@@ -1,5 +1,5 @@
 //
-// Model 2 individual
+// Model 5 (model 3 + model 4)
 
 data {
   
@@ -10,6 +10,9 @@ data {
   int<lower=0,upper=1> t3[N];
   int<lower=0,upper=1> t4[N];
   int<lower=0,upper=1> t5[N];
+  // real alpha_1;
+  // real beta_1;
+  //vector<lower=1,upper=1>[32] profiles[M];
   
 }
 
@@ -29,9 +32,10 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0> b1;
-  real<lower=0> b2;
-
+  real<lower=0,upper=5> b1; 
+  real<lower=0,upper=5> b2;
+  // real<lower=0,upper=5> b3;
+  // real<lower=0,upper=5> b4;
 }
 
 transformed parameters {
@@ -39,24 +43,23 @@ transformed parameters {
   simplex[2] theta; // prob infected or not infected
   vector[N] prob[M,2];   // probabilities of being TN or TP
   real Sp1;
-
+  
   Sp1 = 1;
   
   theta[1] = 1-prev;
   theta[2] = prev;
- 
-
+  
 // vectorised version of above, faster
   prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
   prob[1,2] = rep_vector(a1,N); // not correalted with the other tests
-  prob[2,1] = rep_vector(1-Sp2,N);
-  prob[2,2] = inv_logit(logit(a2)+b1*RE);
-  prob[3,1] = rep_vector(1-Sp3,N);
-  prob[3,2] = rep_vector(a3, N);
-  prob[4,1] = rep_vector(1-Sp4,N);
+  prob[2,1] = inv_logit(logit(1-Sp2)+b1*RE);
+  prob[2,2] = inv_logit(logit(a2)+b2*RE);
+  prob[3,1] = inv_logit(logit(1-Sp3)+b1*RE);
+  prob[3,2] = inv_logit(logit(a3)+b2*RE);
+  prob[4,1] = inv_logit(logit(1-Sp4)+b1*RE);
   prob[4,2] = inv_logit(logit(a4)+b2*RE);
-  prob[5,1] = rep_vector(1-Sp5,N);
-  prob[5,2] = rep_vector(a5, N);
+  prob[5,1] = inv_logit(logit(1-Sp5)+b1*RE);
+  prob[5,2] = inv_logit(logit(a5)+b2*RE);
   //  
 }
 
@@ -97,67 +100,34 @@ generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
   
-  // for loo-cv
-  vector[N] log_lik;
-  real ll[2];
   
-  // for prediction
   int<lower=0> y_pred[N,M];
   int<lower=0,upper=1> inf[N];
-  real<lower=0,upper=1> p[N,M];
-  
-  real ppv1;
-  real npv1;
-  real ppv2;
-  real npv2;
-  real ppv3;
-  real npv3;
-  real ppv4;
-  real npv4;
-  real ppv5;
-  real npv5;
 
+  real<lower=0,upper=1> p[N,M];
+
+// mean se and sp
 for(m in 1:M){
   Se_mean[m] = mean(prob[m,2,]);
   Sp_mean[m] = mean(1-prob[m,1,]);
 }
- 
-  ppv1 = Se_mean[1]*prev / (Se_mean[1]*prev+(1-Sp_mean[1])*(1-prev));
-  npv1 = Sp_mean[1]*(1-prev) / (Sp_mean[1]*(1-prev)+(1-Se_mean[1])*prev);
-  ppv2 = Se_mean[2]*prev / (Se_mean[2]*prev+(1-Sp_mean[2])*(1-prev));
-  npv2 = Sp_mean[2]*(1-prev) / (Sp_mean[2]*(1-prev)+(1-Se_mean[2])*prev);
-  ppv3 = Se_mean[3]*prev / (Se_mean[3]*prev+(1-Sp_mean[3])*(1-prev));
-  npv3 = Sp_mean[3]*(1-prev) / (Sp_mean[3]*(1-prev)+(1-Se_mean[3])*prev);
-  ppv4 = Se_mean[4]*prev / (Se_mean[4]*prev+(1-Sp_mean[4])*(1-prev));
-  npv4 = Sp_mean[4]*(1-prev) / (Sp_mean[4]*(1-prev)+(1-Se_mean[4])*prev);
-  ppv5 = Se_mean[5]*prev / (Se_mean[5]*prev+(1-Sp_mean[5])*(1-prev));
-  npv5 = Sp_mean[5]*(1-prev) / (Sp_mean[5]*(1-prev)+(1-Se_mean[5])*prev);
   
+// prediction  
 for(n in 1:N){
-  inf[n] = binomial_rng(1,theta[2]);
-}  
+   inf[n] = binomial_rng(1,theta[2]);
+ }
 
 for(n in 1:N){
   for(m in 1:M){
-    p[n,m] = inf[n]*prob[m,2,n]+(1-inf[n])*(prob[m,1,n]);
-  }
+      p[n,m] = (inf[n]*prob[m,2,n])+((1-inf[n])*(prob[m,1,n])); // probaility of person N being positive for test m
+   }
 }
 
 for(n in 1:N){
   for(m in 1:M){
-    y_pred[n,m] = binomial_rng(1,p[n,m]);
+    y_pred[n,m] = binomial_rng(1, p[n,m]); // test result for person N on test M
   }
-}  
-
-//Likelihood for use in LOO-CV
-for(n in 1:N){
-  for(k in 1:2){
-    ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
-  }
-
-log_lik[n] = log_sum_exp(ll);
 }
-
-
+  
 }
 

@@ -10,9 +10,6 @@ data {
   int<lower=0,upper=1> t3[N];
   int<lower=0,upper=1> t4[N];
   int<lower=0,upper=1> t5[N];
-  // real alpha_1;
-  // real beta_1;
-  //vector<lower=1,upper=1>[32] profiles[M];
   
 }
 
@@ -34,8 +31,7 @@ parameters {
   vector[N] RE;
   real<lower=0> b1;
   //real<lower=0> b2;
-  // real<lower=0,upper=5> b3;
-  // real<lower=0,upper=5> b4;
+
 }
 
 transformed parameters {
@@ -49,17 +45,7 @@ transformed parameters {
   theta[1] = 1-prev;
   theta[2] = prev;
  
-// for(n in 1:N){
-//   prob[1,1,n] = inv_logit(logit(1-Sp1)); // Test 1, individual n, not infected, FP
-//   prob[1,2,n] = inv_logit(logit(a1));  // TP
-//   prob[2,1,n] = inv_logit(logit(1-Sp2));
-//   prob[2,2,n] = inv_logit(logit(a2)+b1*RE[n]);
-//   prob[3,1,n] = inv_logit(logit(1-Sp3));
-//   prob[3,2,n] = inv_logit(logit(a3)+b2*RE[n]);
-//   prob[4,1,n] = inv_logit(logit(1-Sp4));
-//   prob[4,2,n] = inv_logit(logit(a4)+b3*RE[n]); 
-//   }
-  
+
 // vectorised version of above, faster
   prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
   prob[1,2] = rep_vector(a1,N); // not correalted with the other tests
@@ -111,8 +97,8 @@ generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
   
-  // vector[N] log_lik;
-  // real ll[2];
+  vector[N] log_lik;
+  real ll[2];
   
   real ppv1;
   real npv1;
@@ -163,14 +149,14 @@ for(n in 1:N){
   }
 } 
 
-// Likelihood for use in LOO-CV
-  // for(n in 1:N){
-  //   for(k in 1:2){
-  //     ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
-  //   }
-  // 
-  // log_lik[n] = log_sum_exp(ll);
-  // }
+//Likelihood for use in LOO-CV
+for(n in 1:N){
+  for(k in 1:2){
+    ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
+  }
+
+log_lik[n] = log_sum_exp(ll);
+}
 
 
 }
