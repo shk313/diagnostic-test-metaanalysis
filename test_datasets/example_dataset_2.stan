@@ -17,17 +17,14 @@ data {
 
 parameters {
   real<lower=0,upper=1> a1; 
-  real<lower=0.8,upper=1> Sp1; 
-  // real<lower=0,upper=1> a2; 
-  // real<lower=0.8,upper=1> Sp2; 
-  // real<lower=0,upper=1> a3; 
-  // real<lower=0.8,upper=1> Sp3; 
+  real<lower=0,upper=1> Sp1; 
+
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0> b1; 
-  // real<lower=0> b2; 
-  // real<lower=0> b3; 
+  real<lower=0> tau; 
+  real<lower=0> sd_re;
+
 }
 
 transformed parameters {
@@ -38,26 +35,14 @@ transformed parameters {
   theta[1] = 1-prev;
   theta[2] = prev;
  
-// for(n in 1:N){
-//   prob[1,1,n] = inv_logit(logit(1-Sp1)); // Test 1, individual n, not infected, FP
-//   prob[1,2,n] = inv_logit(logit(a1)+b1*RE[n]);  // TP
-//   prob[2,1,n] = inv_logit(logit(1-Sp1));
-//   prob[2,2,n] = inv_logit(logit(a1)+b1*RE[n]);
-//   prob[3,1,n] = inv_logit(logit(1-Sp1));
-//   prob[3,2,n] = inv_logit(logit(a1)+b1*RE[n]);
-//   prob[4,1,n] = inv_logit(logit(1-Sp1));
-//   prob[4,2,n] = inv_logit(logit(a1)+b1*RE[n]);
-//   }
-  
-  // vectorised version of above
   prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
-  prob[1,2] = inv_logit(logit(a1)+b1*RE);
+  prob[1,2] = inv_logit(logit(a1)+sd_re*RE);
   prob[2,1] = rep_vector(1-Sp1,N);
-  prob[2,2] = inv_logit(logit(a1)+b1*RE);
+  prob[2,2] = inv_logit(logit(a1)+sd_re*RE);
   prob[3,1] = rep_vector(1-Sp1,N);
-  prob[3,2] = inv_logit(logit(a1)+b1*RE);
+  prob[3,2] = inv_logit(logit(a1)+sd_re*RE);
   prob[4,1] = rep_vector(1-Sp1,N);
-  prob[4,2] = inv_logit(logit(a1)+b1*RE);
+  prob[4,2] = inv_logit(logit(a1)+sd_re*RE);
 
 }
 
@@ -66,15 +51,12 @@ model {
   real ps[2];
   // priors
   a1~beta(1,1);
-  // a2~beta(1,1);
-  // a3~beta(1,1);
   Sp1~beta(alpha_1,beta_1);
-  // Sp2~beta(alpha_1,beta_1);
-  // Sp3~beta(alpha_1,beta_1);
   prev~beta(1,1); 
 
   RE~normal(0,1); 
-  b1~gamma(1,1);
+  tau~gamma(1,1);
+  sd_re~normal(tau,1);
 
   
   for(n in 1:N){

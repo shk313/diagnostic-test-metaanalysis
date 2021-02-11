@@ -30,9 +30,8 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0> b1; 
-  real<lower=0> b2;
-  real<lower=0> b3;
+  real<lower=0> tau;
+  real<lower=0> sd_re[3];
 }
 
 transformed parameters {
@@ -58,11 +57,11 @@ transformed parameters {
   prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
   prob[1,2] = rep_vector(a1,N); // not correalted with the other tests
   prob[2,1] = rep_vector(1-Sp2,N);
-  prob[2,2] = inv_logit(logit(a2)+b1*RE);
+  prob[2,2] = inv_logit(logit(a2)+sd_re[1]*RE);
   prob[3,1] = rep_vector(1-Sp3,N);
-  prob[3,2] = inv_logit(logit(a3)+b2*RE);
+  prob[3,2] = inv_logit(logit(a3)+sd_re[2]*RE);
   prob[4,1] = rep_vector(1-Sp4,N);
-  prob[4,2] = inv_logit(logit(a4)+b3*RE);
+  prob[4,2] = inv_logit(logit(a4)+sd_re[3]*RE);
   //  
 }
 
@@ -81,9 +80,8 @@ model {
   prev~beta(1,1); 
 
   RE~normal(0,1); 
-  b1~gamma(1,1);
-  b2~gamma(1,1);
-  b3~gamma(1,1);
+  tau~gamma(1,1); // 'base' precision
+  sd_re~normal(tau,1); //'precision' parameters for each test
   
   for(n in 1:N){
     for(k in 1:2){
