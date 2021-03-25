@@ -31,8 +31,11 @@ parameters {
   real<lower=0,upper=1> prev; 
   
   vector[N] RE;
-  real<lower=0> tau;
-  real<lower=0> sd_re[4]; 
+  vector[1] tau;
+  // what I had previously
+  //real<lower=0> sd_re[4];
+  
+  real<lower=0> sigma_re[4];
 
 }
 
@@ -41,15 +44,19 @@ transformed parameters {
   simplex[2] theta; // prob infected or not infected
   vector[N] prob[M,2];   // probabilities of being TN or TP
   real Sp1;
-  // real logtau;
-  // 
-  // logtau = log(tau);
+  
+  vector<lower=0>[4] sd_re; 
   
   Sp1 = 1;
 
   theta[1] = 1-prev;
   theta[2] = prev;
- 
+  
+for(i in 1:4){
+  sd_re[i] = tau[1] * sigma_re[i]; // + mean if it is different but it's just one in this case
+} 
+  
+
 // correlation among infected people  
   // prob[1,1] = rep_vector(1-Sp1,N); // Test 1, individual n, not infected
   // prob[1,2] = rep_vector(a1,N); // not correalted with the other tests
@@ -94,8 +101,13 @@ model {
   prev~beta(1,1); 
 
   RE~std_normal(); // implies RE ~normal(0,sd_re)
-  tau ~ gamma(1,1); // 'base' precision
-  sd_re~normal(tau,1); //'precision' parameters for each test
+  // what I had initially
+  // tau ~ gamma(1,1); // 'base' precision
+  // sd_re~normal(tau,1); //'precision' parameters for each test
+  
+  // make sd_re a parameter instead
+  tau~std_normal();
+  sigma_re~exponential(0.5);
 
 
   
@@ -128,10 +140,10 @@ generated quantities {
   // real ppv5;
   // real npv5;
   
-  int<lower=0> y_pred[N,M];
-  int<lower=0,upper=1> inf[N];
-
-  real<lower=0,upper=1> p[N,M];
+  // int<lower=0> y_pred[N,M];
+  // int<lower=0,upper=1> inf[N];
+  // 
+  // real<lower=0,upper=1> p[N,M];
 
 // mean se and sp
 for(m in 1:M){
@@ -151,21 +163,21 @@ for(m in 1:M){
   // npv5 = Sp5*(1-prev) / (Sp5*(1-prev)+(1-Se_mean[5])*prev);
   // 
 // prediction  
-for(n in 1:N){
-   inf[n] = binomial_rng(1,theta[2]);
- }
-
-for(n in 1:N){
-  for(m in 1:M){
-      p[n,m] = (inf[n]*prob[m,2,n])+((1-inf[n])*(prob[m,1,n])); // probaility of person N being positive for test m
-   }
-}
-
-for(n in 1:N){
-  for(m in 1:M){
-    y_pred[n,m] = binomial_rng(1, p[n,m]); // test result for person N on test M
-  }
-}
+// for(n in 1:N){
+//    inf[n] = binomial_rng(1,theta[2]);
+//  }
+// 
+// for(n in 1:N){
+//   for(m in 1:M){
+//       p[n,m] = (inf[n]*prob[m,2,n])+((1-inf[n])*(prob[m,1,n])); // probaility of person N being positive for test m
+//    }
+// }
+// 
+// for(n in 1:N){
+//   for(m in 1:M){
+//     y_pred[n,m] = binomial_rng(1, p[n,m]); // test result for person N on test M
+//   }
+// }
 
 // Likelihood for use in LOO-CV
   // for(n in 1:N){
