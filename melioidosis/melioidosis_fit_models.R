@@ -8,8 +8,8 @@ rstan_options(auto_write = TRUE)
 options(mc.cores=parallel::detectCores())
 options(shinystan.rstudio = TRUE)
 
-path_to_data <- '/Users/SuzanneKeddie/OneDrive - London School of Hygiene and Tropical Medicine/diagnostic_test_meta_analysis/examples/Melioidosis/'
-path_to_code <- '/Users/SuzanneKeddie/Documents/diagnostic-test-metaanalysis/melioidosis/'
+path_to_data <- ''
+path_to_code <- ''
 raw_data <- read.csv(paste0(path_to_data,'melioidosis_data.csv'))
 
 
