@@ -19,7 +19,7 @@ data {
 
 parameters {
   real<lower=0,upper=1> a1; 
-  //real<lower=0.99,upper=1> Sp1; 
+  real<lower=0.9,upper=1> Sp1;
   real<lower=0,upper=1> a2;
   real<lower=0,upper=1> Sp2;
   real<lower=0,upper=1> a3;
@@ -42,10 +42,10 @@ transformed parameters {
   
   simplex[2] theta; // prob infected or not infected
   vector[N] prob[M,2];   // probabilities of being TN or TP
-  real Sp1;
-  
-  Sp1 = 1;
-  
+  // real Sp1;
+  // 
+  // Sp1 = 1;
+  // 
   theta[1] = 1-prev;
   theta[2] = prev;
  
@@ -83,7 +83,7 @@ model {
   a3~beta(1,1);
   a4~beta(1,1);
   a5~beta(1,1);
-  //Sp1~beta(100,1);
+  Sp1~beta(10,1);
   Sp2~beta(1,1);
   Sp3~beta(1,1);
   Sp4~beta(1,1);
@@ -110,6 +110,9 @@ model {
 generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
+    // for loo-cv
+  vector[N] log_lik;
+  real ll[2];
   
   
   int<lower=0> y_pred[N,M];
@@ -139,6 +142,16 @@ for(n in 1:N){
     y_pred[n,m] = binomial_rng(1, p[n,m]); // test result for person N on test M
   }
 }
+
+//Likelihood for use in LOO-CV
+for(n in 1:N){
+  for(k in 1:2){
+    ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
+  }
+
+log_lik[n] = log_sum_exp(ll);
+}
+
   
 }
 

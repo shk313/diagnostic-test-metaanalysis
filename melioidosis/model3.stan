@@ -99,9 +99,9 @@ generated quantities {
   real Se_mean[M];
   real Sp_mean[M];
   
-  // vector[N] log_lik;
-  // real ll[2];
-  
+  vector[N] log_lik;
+  real ll[2];
+
   // real ppv1;
   // real npv1;
   // real ppv2;
@@ -152,14 +152,14 @@ for(n in 1:N){
   }
 }
 
-// Likelihood for use in LOO-CV
-  // for(n in 1:N){
-  //   for(k in 1:2){
-  //     ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
-  //   }
-  // 
-  // log_lik[n] = log_sum_exp(ll);
-  // }
+//Likelihood for use in LOO-CV
+for(n in 1:N){
+  for(k in 1:2){
+    ll[k] = log(theta[k]) +  binomial_lpmf(t1[n]| 1, prob[1,k,n]) +  binomial_lpmf(t2[n]| 1, prob[2,k,n]) + binomial_lpmf(t3[n]| 1, prob[3,k,n]) + binomial_lpmf(t4[n]| 1, prob[4,k,n]) + binomial_lpmf(t5[n]| 1, prob[5,k,n]);
+  }
+
+log_lik[n] = log_sum_exp(ll);
+}
   
 }
 
