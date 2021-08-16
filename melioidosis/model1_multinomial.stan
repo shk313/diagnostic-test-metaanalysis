@@ -24,7 +24,7 @@ parameters {
   real<lower=0,upper=1> Sp5; // specifcity
   real<lower=0,upper=1> prev; // prevalence
   
-  real<lower=-(Se2*Se3),upper=fmin(Se2,Se3)-Se2*Se3> cov23;// covariance between tests two and three
+  real<lower=-Se2*Se3,upper=fmin(Se2,Se3)-Se2*Se3> cov23;// covariance between tests two and three
   //real<lower=0,upper=1> cov23;// covariance between tests two and three
 
 }
@@ -90,9 +90,15 @@ model {
 }
 
 generated quantities {
-  
+  vector[N] log_lik;
   int<lower=0> y_pred[C];
+  
   y_pred = multinomial_rng(theta2, N);
+  
+
+  for(n in 1:N){
+    log_lik[n] = multinomial_lpmf(y | theta2);
+  }
   
 }
 
